@@ -1,0 +1,128 @@
+.container {
+  height: 100vh;
+  width: 6%;
+  max-width: 6rem;
+  display: flex;
+
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0rem;
+  background: rgb(20, 20, 20);
+}
+.menu{
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5rem;
+    height: 100%;
+}
+
+/* Create a separate style for the login button */
+.loginItem {
+    margin-top: auto;
+    margin-bottom: 2rem;
+}
+
+/* Reset the last-child style we added before */
+.menu > :last-child {
+    margin-top: unset;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0.8rem;
+    border-radius: 8px;
+}
+
+.item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.item svg {
+    width: 30px;
+    height: 30px;
+    color: white;
+}
+
+.accountDetails {
+  position: absolute;
+  right: -250px;
+  top: 0;
+  background: #111;
+  padding: 1.5rem;
+  border-radius: 12px;
+  min-width: 200px;
+  border: 1px solid #333;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.userInfo {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #333;
+  margin-bottom: 1rem;
+}
+
+.userInfo h4 {
+  margin: 0;
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.userInfo p {
+  margin: 0.25rem 0;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.lastLogin {
+  font-size: 0.8rem !important;
+  color: #666 !important;
+}
+
+.accountActions button {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s ease;
+}
+
+.accountActions button:hover {
+  background: #333;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  padding: 1rem;
+  position: relative;
+}
+
+.menuItem svg {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Specific alignment for account icon if needed */
+.menuItem:last-child {
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,154 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: rgb(20, 20, 20);  /* Matching sidebar background */
+  position: fixed;  /* Changed to fixed */
+  width: 100%;     /* Added width */
+  top: 0;          /* Added positioning */
+  left: 0;
+  overflow: hidden;  /* Prevent scrolling */
+}
+
+/* Adding gradient effects similar to dashboard */
+.container::before {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: #ff5d5d;  /* Red gradient */
+  filter: blur(90px);
+  top: 10%;
+  left: 20%;
+}
+
+.container::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: #5dc9ff;  /* Blue gradient */
+  filter: blur(90px);
+  bottom: 10%;
+  right: 20%;
+}
+
+.loginForm {
+  background: rgba(17, 17, 17, 0.9);  /* Slightly transparent black */
+  padding: 3rem;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  color: white;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  z-index: 1;  /* Ensure form stays above gradients */
+}
+
+.loginForm h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(26, 26, 26, 0.8);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.formGroup input:focus {
+  border-color: #1a75ff;
+  outline: none;
+  background: rgba(26, 26, 26, 0.95);
+}
+
+.formGroup input::placeholder {
+  color: #888;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 12px;
+  margin-top: 1.5rem;
+  background: linear-gradient(to right, #1a75ff, #0052cc);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.loginButton:hover {
+  background: linear-gradient(to right, #0052cc, #003d99);
+  transform: translateY(-2px);
+}
+
+.form label {
+  color: white;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.forgotPassword {
+  text-align: right;
+  margin-bottom: 1rem;
+}
+
+.forgotPassword span {
+  color: #1a75ff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.forgotPassword span:hover {
+  color: #0052cc;
+  text-decoration: underline;
+}
+
+.switchMode {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #888;
+}
+
+.switchMode p {
+  font-size: 0.9rem;
+}
+
+.switchMode span {
+  color: #1a75ff;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.switchMode span:hover {
+  color: #0052cc;
+  text-decoration: underline;
+}
+
+.error {
+  color: #ff3333;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+  text-align: center;
+  background: rgba(255, 51, 51, 0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
+} 

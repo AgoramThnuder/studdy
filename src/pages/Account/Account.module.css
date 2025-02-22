@@ -1,0 +1,396 @@
+.container {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.profileCard {
+  background: rgba(17, 17, 17, 0.9);
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 800px;
+  min-height: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: white;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.profileCard h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  color: white;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #888;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.formGroup input:disabled,
+.formGroup textarea:disabled {
+  background: rgba(26, 26, 26, 0.4);
+  cursor: not-allowed;
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.buttonGroup {
+  margin-top: 3rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+}
+
+.editButton {
+  background: #1a75ff;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  position: relative;
+  z-index: 20;
+}
+
+.editButton:hover {
+  background: #0052cc;
+  transform: translateY(-2px);
+}
+
+.saveButton,
+.cancelButton {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.saveButton {
+  background: #1a75ff;
+  color: white;
+  font-weight: 500;
+}
+
+.cancelButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.subjectsSection {
+  margin-bottom: 2rem;
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.subjectsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  min-height: 40px;
+}
+
+.subjectTag {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.removeIcon {
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: transform 0.2s;
+}
+
+.removeIcon:hover {
+  transform: scale(1.1);
+}
+
+.addSubject {
+  background: rgba(26, 26, 26, 0.8);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.addSubject input {
+  padding: 0.8rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  width: 100%;
+}
+
+.colorSelection {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.recentColors {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.colorOption {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.colorOption:hover {
+  transform: scale(1.1);
+}
+
+.colorOption.selected {
+  border: 2px solid white;
+  transform: scale(1.1);
+}
+
+.colorPickerButton {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.colorPickerButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.colorPickerWrapper {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.colorPickerActions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.colorSelectButton,
+.colorCancelButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.colorSelectButton {
+  background: #4CAF50;
+  color: white;
+}
+
+.colorSelectButton:hover {
+  background: #45a049;
+  transform: scale(1.1);
+}
+
+.colorSelectButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.colorCancelButton {
+  background: #f44336;
+  color: white;
+}
+
+.colorCancelButton:hover {
+  background: #da190b;
+  transform: scale(1.1);
+}
+
+.colorPickerPopover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 10px);
+  left: 0;
+}
+
+.colorPickerCover {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 19;
+}
+
+/* Ensure color picker stays visible */
+.colorPickerWrapper {
+  position: relative;
+  z-index: 21;
+}
+
+.addButton {
+  align-self: flex-end;
+  padding: 0.8rem 1.5rem;
+  background: #1a75ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.addButton:hover {
+  background: #0052cc;
+  transform: translateY(-2px);
+}
+
+.disabled {
+  opacity: 0.7;
+  background: rgba(26, 26, 26, 0.4) !important;
+  cursor: not-allowed !important;
+}
+
+.formGroup input:not(.disabled),
+.formGroup textarea:not(.disabled) {
+  background: rgba(26, 26, 26, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.formGroup input:focus:not(.disabled),
+.formGroup textarea:focus:not(.disabled) {
+  border-color: #1a75ff;
+  outline: none;
+}
+
+.subjectsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.addSubjectButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #1a75ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.addSubjectButton:hover {
+  background: #0052cc;
+}
+
+.subjectInput {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.subjectActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.colorPickerContainer {
+  position: relative;
+  margin: 1rem 0;
+  z-index: 10;
+}
+
+.colorPreview {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.colorPreview:hover {
+  transform: scale(1.1);
+} 
