@@ -63,57 +63,17 @@
     cursor: pointer
 }
 
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Ensure it appears above other content */
-}
-
-.modal {
-    background-color: #2c2c2c; /* Dark background for the modal */
-    color: white; /* White text for better contrast */
-    padding: 30px; /* Increased padding for more space */
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    width: 500px; /* Increased width for the modal */
-    max-width: 90%; /* Responsive width */
-}
-
-.modal h2 {
-    margin: 0 0 15px; /* Increased margin for better spacing */
-    font-size: 28px; /* Increased font size */
-}
-
-.modal input,
-.modal textarea {
-    width: 100%;
-    margin-bottom: 15px; /* Increased margin for better spacing */
-    padding: 12px; /* Increased padding for inputs */
-    border: 1px solid #555; /* Darker border */
+.kanban-card button {
+    background-color: transparent;
+    color: black;
+    border: 1px solid black;
+    padding: 5px 10px;
     border-radius: 4px;
-    background-color: #444; /* Darker background for inputs */
-    color: white; /* White text for inputs */
-    font-size: 16px; /* Increased font size for inputs */
-}
-
-.modal button {
-    margin-right: 10px;
-    padding: 10px 15px; /* Increased padding for buttons */
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff; /* Bootstrap primary color */
-    color: white;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.modal button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+.kanban-card button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: black;
 }

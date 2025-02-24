@@ -4,8 +4,8 @@ import useBoard from '../../store/Board';
 import "./Board.css"
 import { RxCross2 } from 'react-icons/rx'
 import { IoMdAdd } from 'react-icons/io'
+import AddCardModal from '../../components/AddCardModal/AddCardModal';
 import { useState } from 'react';
-import { boardData } from '../../data'; // Assuming you have this data
 
 const BoardPage = () => {
 
@@ -14,7 +14,8 @@ const BoardPage = () => {
     const [title, setTitle] = useState('');
     const [detail, setDetail] = useState('');
     const [dueDate, setDueDate] = useState('');
-    const [currentColumn, setCurrentColumn] = useState(null); // Track the current column
+    const [currentColumn, setCurrentColumn] = useState(null);
+    const [currentTask, setCurrentTask] = useState(null);
 
     const handleColumnMove = (_card, source, destination) => {
         const updatedBoard = moveColumn(board, source, destination)
@@ -59,45 +60,48 @@ const BoardPage = () => {
     }
 
     const handleCardAdd = (title, detail, dueDate, column) => {
-        const createdDate = new Date().toISOString().split('T')[0];
         const card = {
-            id: new Date().getTime(),
-            title,
+            id : new Date().getTime(),
+            title, 
             description: detail,
-            createdDate,
-            dueDate
+            dueDate: dueDate
         };
-        
-        console.log("New Card:", card);
-        
-        // Add the card to the specified column
-        const updatedBoard = addCardToColumn(board, column, card);
-        
-        console.log("Updated Board:", updatedBoard);
-        setBoard(updatedBoard);
-        setModalOpened(false);
+        const updatedBoard = addCard(board, column, card)
+        setBoard(updatedBoard)
+        setModalOpened(false)
     }
+
+    const handleCardEdit = (task) => {
+        setTitle(task.title);
+        setDetail(task.description);
+        setDueDate(task.dueDate);
+        setCurrentTask(task);
+        setModalOpened(true);
+    };
 
     const handleSubmit = () => {
         if (!title || !detail || !dueDate) {
             alert("Please fill in all fields.");
             return;
         }
-        handleCardAdd(title, detail, dueDate, currentColumn); // Pass the current column
-        setTitle('')
-        setDetail('')
-        setDueDate('')
-    }
+        if (currentTask) {
+            updateTask(currentTask.id, { title, detail, dueDate });
+        } else {
+            handleCardAdd(title, detail, dueDate, currentColumn);
+        }
+        setTitle('');
+        setDetail('');
+        setDueDate('');
+        setCurrentTask(null);
+    };
 
-    const addCardToColumn = (board, column, card) => {
-        return {
-            ...board,
-            columns: board.columns.map(col => 
-                col.id === column.id 
-                ? { ...col, cards: [...col.cards, card] } 
-                : col
-            )
-        };
+    const updateTask = (id, updatedTask) => {
+        const updatedBoard = board.columns.map(column => ({
+            ...column,
+            cards: column.cards.map(card => (card.id === id ? { ...card, ...updatedTask } : card))
+        }));
+        setBoard({ columns: updatedBoard });
+        setModalOpened(false);
     };
 
     return (
@@ -130,9 +134,23 @@ const BoardPage = () => {
                             </button>
                         </div>
                         <span>{props.description}</span>
+                        <button onClick={() => handleCardEdit(props)}>Edit</button>
                     </div>
                 )}
                 renderColumnHeader={(props) => {
+
+                    const [modalOpened, setModalOpened] = useState(false)
+
+                    const handleCardAdd = (title, detail)=> {
+                        const card = {
+                            id : new Date().getTime(),
+                            title, 
+                            description: detail
+                        };
+                        const updatedBoard = addCard(board, props, card)
+                        setBoard(updatedBoard)
+                        setModalOpened(false)
+                    }
                     return (
                         <div className='column-header'>
                             <span>{props.title}</span>
@@ -140,8 +158,10 @@ const BoardPage = () => {
                             <IoMdAdd
                                 color="white"
                                 size={25} title="Add card"
-                                onClick={() => { setCurrentColumn(props); setModalOpened(true); }}
+                                onClick={()=>setModalOpened(true)}
                             />
+                            <AddCardModal visible={modalOpened} handleCardAdd={handleCardAdd}
+                                onClose={() => setModalOpened(false)} />
                         </div>
                     )
                 }}
@@ -153,7 +173,7 @@ const BoardPage = () => {
             {modalOpened && (
                 <div className="modal-overlay">
                     <div className="modal">
-                        <h2>Add Task</h2>
+                        <h2>{currentTask ? "Edit Task" : "Add Task"}</h2>
                         <input 
                             type="text" 
                             placeholder="Card Title" 
@@ -168,10 +188,10 @@ const BoardPage = () => {
                         <input 
                             type="date" 
                             value={dueDate} 
-                            onChange={(e) => setDueDate(e.target.value)}
+                            onChange={(e) => setDueDate(e.target.value)} 
                         />
                         <p>Created Date: {new Date().toISOString().split('T')[0]}</p>
-                        <button onClick={handleSubmit}>Add Task</button>
+                        <button onClick={handleSubmit}>{currentTask ? "Update Task" : "Add Task"}</button>
                         <button onClick={() => setModalOpened(false)}>Close</button>
                     </div>
                 </div>
