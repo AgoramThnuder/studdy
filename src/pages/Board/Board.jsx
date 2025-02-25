@@ -6,16 +6,31 @@ import { RxCross2 } from 'react-icons/rx'
 import { IoMdAdd } from 'react-icons/io'
 import AddCardModal from '../../components/AddCardModal/AddCardModal';
 import { useState } from 'react';
+import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md' // Add this import
+import { useEffect } from 'react';  // Add this import
+import { IoMdNotifications } from 'react-icons/io'; // Add this import at the top
 
 const BoardPage = () => {
+    const { board, setBoard, initBoard } = useBoard();
+    
+    useEffect(() => {
+        initBoard();
+    }, [initBoard]);
 
-    const { board, setBoard } = useBoard()
     const [modalOpened, setModalOpened] = useState(false);
     const [title, setTitle] = useState('');
     const [detail, setDetail] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [currentColumn, setCurrentColumn] = useState(null);
     const [currentTask, setCurrentTask] = useState(null);
+    const [expandedCards, setExpandedCards] = useState({});
+
+    const toggleCardDetails = (cardId) => {  // Move this here
+        setExpandedCards(prev => ({
+            ...prev,
+            [cardId]: !prev[cardId]
+        }));
+    };
 
     const handleColumnMove = (_card, source, destination) => {
         const updatedBoard = moveColumn(board, source, destination)
@@ -56,15 +71,21 @@ const BoardPage = () => {
                 background:
                     "linear-gradient(65.35deg, rgba(65, 65,65, 0.67) -1.72%,rgba(134, 48, 220) 163.54%)",
             };
+        } else if (title === "Rewise") {
+            return {
+                background:
+                    "linear-gradient(65.35deg, rgba(65, 65, 65, 0.67) -1.72%, rgba(255, 193, 7) 163.54%)",
+            };
         }
     }
 
     const handleCardAdd = (title, detail, dueDate, column) => {
         const card = {
-            id : new Date().getTime(),
-            title, 
+            id: new Date().getTime(),
+            title,
             description: detail,
-            dueDate: dueDate
+            dueDate: dueDate,
+            createdDate: new Date().toISOString().split('T')[0]
         };
         const updatedBoard = addCard(board, column, card)
         setBoard(updatedBoard)
@@ -104,10 +125,105 @@ const BoardPage = () => {
         setModalOpened(false);
     };
 
+    const [showNotifications, setShowNotifications] = useState(false);
+
+    const getTomorrowsTasks = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowString = tomorrow.toISOString().split('T')[0];
+        
+        const dueTasks = [];
+        board.columns.forEach(column => {
+            column.cards.forEach(card => {
+                if (card.dueDate === tomorrowString) {
+                    dueTasks.push({
+                        title: card.title,
+                        column: column.title
+                    });
+                }
+            });
+        });
+        return dueTasks;
+    };
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        if (query.trim() === '') {
+            setSearchResults([]);
+            return;
+        }
+
+        const results = [];
+        board.columns.forEach(column => {
+            column.cards.forEach(card => {
+                if (card.title.toLowerCase().includes(query.toLowerCase())) {
+                    results.push({
+                        ...card,
+                        columnTitle: column.title
+                    });
+                }
+            });
+        });
+        setSearchResults(results);
+    };
+
     return (
         <div className="board-container">
-
-            <span>Trello Board</span>
+            <div className="board-header">
+                <span>Kanban Board</span>
+                <div className="search-notification-container">
+                    <div className="search-container">
+                        <input
+                            type="text"
+                            placeholder="Search tasks..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            className="search-input"
+                        />
+                        {searchResults.length > 0 && searchQuery && (
+                            <div className="search-results">
+                                {searchResults.map((result) => (
+                                    <div 
+                                        key={result.id} 
+                                        className="search-result-item"
+                                        onClick={() => handleSearchResultClick(result)}
+                                    >
+                                        <div className="result-title">{result.title}</div>
+                                        <div className="result-column">{result.columnTitle}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="notification-container">
+                        <button 
+                            className="notification-button"
+                            onClick={() => setShowNotifications(!showNotifications)}
+                        >
+                            <IoMdNotifications size={25} />
+                            {getTomorrowsTasks().length > 0 && (
+                                <span className="notification-badge">
+                                    {getTomorrowsTasks().length}
+                                </span>
+                            )}
+                        </button>
+                        {showNotifications && getTomorrowsTasks().length > 0 && (
+                            <div className="notification-dropdown">
+                                <h3>Notifications</h3>
+                                {getTomorrowsTasks().map((task, index) => (
+                                    <div key={index} className="notification-item">
+                                        <span>{task.title}</span>
+                                        <span className="column-tag">{task.column}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             <Board
                 allowAddColumn
@@ -118,9 +234,7 @@ const BoardPage = () => {
                 renderCard={(props) => (
                     <div className='kanban-card' style={getGradient(props)}>
                         <div>
-                            <span>
-                                {props.title}
-                            </span>
+                            <span>{props.title}</span>
                             <button className='remove-button' type='button'
                                 onClick={() => {
                                     const updatedBoard = removeCard(board,
@@ -134,34 +248,96 @@ const BoardPage = () => {
                             </button>
                         </div>
                         <span>{props.description}</span>
-                        <button onClick={() => handleCardEdit(props)}>Edit</button>
+                        <div className="card-actions">
+                            <button 
+                                className="toggle-button"
+                                onClick={() => toggleCardDetails(props.id)}
+                            >
+                                {expandedCards[props.id] ? 
+                                    <MdKeyboardArrowUp size={20} /> : 
+                                    <MdKeyboardArrowDown size={20} />
+                                }
+                            </button>
+                            <button className='edit-button' onClick={() => handleCardEdit(props)}>Edit</button>
+                        </div>
+                        {expandedCards[props.id] && (
+                            <div className="card-details">
+                                <p>{props.description}</p>
+                                <p>Due Date: {props.dueDate}</p>
+                                <p>Created: {props.createdDate}</p>
+                            </div>
+                        )}
                     </div>
                 )}
                 renderColumnHeader={(props) => {
-
                     const [modalOpened, setModalOpened] = useState(false)
-
-                    const handleCardAdd = (title, detail)=> {
+                    const [title, setTitle] = useState('');
+                    const [detail, setDetail] = useState('');
+                    const [dueDate, setDueDate] = useState('');
+                
+                    const handleCardAdd = (title, detail, dueDate) => {
                         const card = {
-                            id : new Date().getTime(),
+                            id: new Date().getTime(),
                             title, 
-                            description: detail
+                            description: detail,
+                            dueDate: dueDate,
+                            createdDate: new Date().toISOString().split('T')[0]
                         };
                         const updatedBoard = addCard(board, props, card)
                         setBoard(updatedBoard)
                         setModalOpened(false)
+                        setTitle('');
+                        setDetail('');
+                        setDueDate('');
                     }
+                
                     return (
                         <div className='column-header'>
                             <span>{props.title}</span>
-
+                
                             <IoMdAdd
                                 color="white"
-                                size={25} title="Add card"
-                                onClick={()=>setModalOpened(true)}
+                                size={25} 
+                                title="Add card"
+                                onClick={() => setModalOpened(true)}
                             />
-                            <AddCardModal visible={modalOpened} handleCardAdd={handleCardAdd}
-                                onClose={() => setModalOpened(false)} />
+                            {modalOpened && (
+                                <div className="modal-overlay">
+                                    <div className="modal">
+                                        <h2>Add Task</h2>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Card Title" 
+                                            value={title} 
+                                            onChange={(e) => setTitle(e.target.value)} 
+                                        />
+                                        <textarea 
+                                            placeholder="Detail" 
+                                            value={detail} 
+                                            onChange={(e) => setDetail(e.target.value)} 
+                                        />
+                                        <input 
+                                            type="date" 
+                                            value={dueDate} 
+                                            onChange={(e) => setDueDate(e.target.value)} 
+                                        />
+                                        <p>Created Date: {new Date().toISOString().split('T')[0]}</p>
+                                        <button onClick={() => {
+                                            if (!title || !detail || !dueDate) {
+                                                alert("Please fill in all fields.");
+                                                return;
+                                            }
+                                            handleCardAdd(title, detail, dueDate);
+                                        }}>Add Task</button>
+                                        <button onClick={() => {
+                                            setModalOpened(false);
+                                            setTitle('');
+                                            setDetail('');
+                                            setDueDate('');
+                                        }}>Close</button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )
                 }}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -6,10 +6,23 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import './Calendar.css'
 import useCalendar from '../../store/Calendar'
 import { createEventId } from '../../data'
+import { IoMdNotifications } from 'react-icons/io'
 
 const Calendar = () => {
-
     const { currentEvents, setCurrentEvents } = useCalendar()
+    const [showNotifications, setShowNotifications] = useState(false);
+
+    // Add this function to get today's events
+    const getTodaysEvents = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        return currentEvents.filter(event => {
+            const eventDate = new Date(event.start);
+            eventDate.setHours(0, 0, 0, 0);
+            return eventDate.getTime() === today.getTime();
+        });
+    };
 
     const handleEvents = async (events) => {
         await Promise.resolve(setCurrentEvents(events))
@@ -44,6 +57,37 @@ const Calendar = () => {
 
     return (
         <div className="calendar-container">
+            <div className="calendar-header">
+                <div className="notification-container">
+                    <button 
+                        className="notification-button"
+                        onClick={() => setShowNotifications(!showNotifications)}
+                    >
+                        <IoMdNotifications size={25} />
+                        {getTodaysEvents().length > 0 && (
+                            <span className="notification-badge">
+                                {getTodaysEvents().length}
+                            </span>
+                        )}
+                    </button>
+                    {showNotifications && getTodaysEvents().length > 0 && (
+                        <div className="notification-dropdown">
+                            <h3>Today's Events</h3>
+                            {getTodaysEvents().map((event, index) => (
+                                <div key={index} className="notification-item">
+                                    <span>{event.title}</span>
+                                    <span className="event-time">
+                                        {new Date(event.start).toLocaleTimeString([], { 
+                                            hour: '2-digit', 
+                                            minute: '2-digit' 
+                                        })}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <div>
                 <FullCalendar

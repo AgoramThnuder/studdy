@@ -25,15 +25,6 @@ const Layout = () => {
 
         <div className={css.header}>
           <span>{moment().format("dddd, Do MMM YYYY")}</span>
-
-          {/* Only show search bar on Board page */}
-          {pathname === "/board" && (
-            <div className={css.searchBar}>
-              <BiSearch size={20} />
-              <input type="text" placeholder="Search" />
-            </div>
-          )}
-
           <div className={css.profile}>
             <div className={css.details}>
             </div>
