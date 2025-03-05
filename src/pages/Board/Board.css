@@ -192,6 +192,22 @@
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
+    margin-bottom: 0.5rem;
+}
+
+.subject-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.subject-select option {
+    background-color: rgb(43, 40, 40);
+    color: white;
 }
 
 .modal input::placeholder,

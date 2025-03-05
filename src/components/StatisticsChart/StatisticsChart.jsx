@@ -1,16 +1,25 @@
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
+import { useEffect, useState } from 'react'
+
 const StatisticsChart = () => {
+    const [subjects, setSubjects] = useState([]);
+    const [taskCounts, setTaskCounts] = useState([]);
+
+    useEffect(() => {
+        const userData = JSON.parse(localStorage.getItem('userData')) || {};
+        const userSubjects = userData.subjects || ['AAD', 'CD', 'IEFT', 'DC', 'CGIP'];
+        setSubjects(userSubjects);
+        setTaskCounts([15, 8, 12, 10, 7]); // Sample task counts per subject
+    }, []);
 
     const option = {
         color: ['var(--orange)'],
-
         toolbox: {
             feature: {
                 saveAsImage: {},
             }
         },
-
         tooltip: {
             trigger: "axis",
             axisPointer: {
@@ -26,19 +35,25 @@ const StatisticsChart = () => {
             containLabel: true,
             show: false,
         },
-
         xAxis: [
             {
                 type: "category",
                 boundaryGap: false,
-                data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                data: subjects,
+                axisLabel: {
+                    color: 'white'
+                }
             }
         ],
         yAxis: [
             {
                 type: "value",
+                name: 'Number of Tasks',
                 splitLine: {
                     show: false,
+                },
+                axisLabel: {
+                    color: 'white'
                 }
             }
         ],
@@ -76,14 +91,13 @@ const StatisticsChart = () => {
                     focus: "series",
                 },
                 showSymbol: false,
-                data: [28000, 19000, 32000, 18000, 41000, 30000, 26000]
+                data: taskCounts
             }
         ]
     }
 
     return (
-        <ReactECharts option={option}
-        />
+        <ReactECharts option={option} style={{ height: '400px' }}/>
     )
 }
 

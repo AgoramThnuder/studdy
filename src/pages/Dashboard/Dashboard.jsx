@@ -26,11 +26,11 @@ const Dashboard = () => {
                 <div className={css.card}>
                   <div className={css.cardHead}>
                     <span>{card.title}</span>
-                    <span>+{card.change}</span>
+                    <span>{card.change}</span>
                   </div>
 
                   <div className={css.cardAmount}>
-                    <span>$</span>
+                    <span>*</span>
                     <span>{groupNumber(card.amount)}</span>
                   </div>
                 </div>

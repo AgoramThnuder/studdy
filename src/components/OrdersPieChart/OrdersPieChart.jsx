@@ -1,9 +1,22 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactECharts from "echarts-for-react";
 import * as echarts from "echarts";
 
-
 const OrdersPieChart = () => {
+    const [subjectData, setSubjectData] = useState([]);
+
+    useEffect(() => {
+        const userData = JSON.parse(localStorage.getItem('userData')) || {};
+        const subjects = userData.subjects || ['AAD', 'CD', 'IEFT', 'DC', 'CGIP'];
+        const taskCounts = [15, 12, 8, 10, 7]; // Sample task counts per subject
+
+        const data = subjects.map((subject, index) => ({
+            value: taskCounts[index],
+            name: subject
+        }));
+        setSubjectData(data);
+    }, []);
+
     const option = {
         color: [
             new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -49,11 +62,11 @@ const OrdersPieChart = () => {
         ],
         series: [
             {
-                name: "Item",
+                name: "Tasks",
                 type: "pie",
                 radius: ["60%", "80%"],
                 avoidLabelOverlap: false,
-                itemStyle : {
+                itemStyle: {
                     borderRadius: 50,
                     borderColor: "black",
                     borderWidth: 5,
@@ -62,19 +75,14 @@ const OrdersPieChart = () => {
                     show: false,
                     position: "center"
                 },
-                emphasis : {
+                emphasis: {
                     label: {
                         show: true,
                         fontSize: 20,
                         fontWeight: "bold"
                     }
                 },
-                data: [
-                    { value: 2190, name: "Search Engine" },
-                    { value: 735, name: "Direct" },
-                    { value: 580, name: "Email" },
-                    { value: 484, name: "Union Ads" },
-                ]
+                data: subjectData
             }
         ]
     }

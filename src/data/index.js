@@ -1,52 +1,40 @@
 import moment from "moment/moment";
 
+// First, update the cardsData in your data file
 export const cardsData = [
+    {
+        title: "ToDo",
+        amount: 15
+    },
   {
-    title: "Revenue",
-    change: 24,
-    amount: 42056,
+    title: "Progress",
+    amount: 12,
   },
   {
-    title: "Orders",
-    change: -14,
-    amount: 52125.03,
+    title: "Completed",
+    amount: 10,
   },
   {
-    title: "Expenses",
-    change: 18,
-    amount: 1216.5,
-  },
-  {
-    title: "Profit",
-    change: 12,
-    amount: 10125.0,
+    title: "Rewise",
+    amount: 18,
   },
 ];
 
 export const ordersData = [
   {
-    name: "Skatebnoard",
-    type: "Illustration",
-    items: 58,
-    change: 290,
+    name: "first most task",
+    items: 15,
+    change: 10,
   },
   {
-    name: "Language courses",
-    type: "Illustration",
+    name: "second most tasks",
     items: 12,
-    change: 72
+    change: 5,
   },
   {
-    name: "Office Collaboration",
-    type: "Illustration",
-    items: 7,
-    change: 70
-  },
-  {
-    name: "Robot",
-    type: "Illustration",
-    items: 21,
-    change: 15
+    name: "Thrid most tasks",
+    items: 8,
+    change: 6,
   }
 ]
 
