@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth'; // Import Firebase auth list
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase'; // Import your Firestore instance
 import { getFirestore } from "firebase/firestore";
+import eventBus from '../../utils/eventBus';
 
 const SUBJECT_COLORS = [
   '#FF5D5D', '#5DC9FF', '#5DFF7F', 
@@ -58,24 +59,26 @@ const Account = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setError('');
     try {
-      console.log('User info to save:', userInfo);
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('No authenticated user found');
+        }
 
-      // Check if userInfo and userInfo.uid are defined
-      if (!userInfo || !userInfo.uid) {
-        console.error('User info or UID is missing');
-        setError('Failed to save user information: User ID is missing.');
-        return;
-      }
+        // Update Firestore
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, userInfo);
 
-      // Attempt to save user information
-      await setDoc(doc(db, 'users', userInfo.uid), userInfo);
-      console.log('User info saved:', userInfo);
-      setIsEditing(false);
-      setShowSubjectInput(false);
+        // Update localStorage and publish event
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        eventBus.publish('subjectsUpdated', userInfo.subjects);
+        
+        setIsEditing(false);
+        setError('Profile updated successfully!');
     } catch (error) {
-      console.error('Error saving user info:', error);
-      setError('Failed to save user information.');
+        console.error('Error saving user info:', error);
+        setError(error.message || 'Failed to save user information.');
     }
   };
 

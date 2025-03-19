@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md' // Add this import
 import { useEffect } from 'react';  // Add this import
 import { IoMdNotifications } from 'react-icons/io'; // Add this import at the top
+import eventBus from '../../utils/eventBus';
 
 const BoardPage = () => {
     const { board, setBoard, initBoard } = useBoard();
@@ -85,8 +86,8 @@ const BoardPage = () => {
     
     // Add this useEffect after other useEffect hooks
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem('userData')) || {};
-        const userSubjects = userData.subjects || ['AAD', 'CD', 'IEFT', 'DC', 'CGIP'];
+        const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
+        const userSubjects = userInfo.subjects?.map(subject => subject.name) || [];
         setSubjects(userSubjects);
     }, []);
     
@@ -183,6 +184,14 @@ const BoardPage = () => {
         });
         setSearchResults(results);
     };
+
+    useEffect(() => {
+        const unsubscribe = eventBus.subscribe('subjectsUpdated', (updatedSubjects) => {
+            setSubjects(updatedSubjects.map(subject => subject.name));
+        });
+        
+        return () => unsubscribe();
+    }, []);
 
     return (
         <div className="board-container">

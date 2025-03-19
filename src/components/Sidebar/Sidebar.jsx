@@ -7,6 +7,7 @@ import { FiLogIn, FiLogOut } from "react-icons/fi";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
+import eventBus from '../../utils/eventBus';
 
 const Sidebar = () => {
     const [accountDetailsVisible, setAccountDetailsVisible] = useState(false);
@@ -14,11 +15,18 @@ const Sidebar = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Get user info from localStorage
+        // Get initial user info from localStorage
         const storedUser = localStorage.getItem('userInfo');
         if (storedUser) {
             setUserInfo(JSON.parse(storedUser));
         }
+
+        // Subscribe to profile updates
+        const unsubscribe = eventBus.subscribe('profileUpdated', (updatedProfile) => {
+            setUserInfo(updatedProfile);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const handleLogout = async () => {

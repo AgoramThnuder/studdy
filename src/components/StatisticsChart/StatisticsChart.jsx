@@ -1,16 +1,27 @@
 import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
 import { useEffect, useState } from 'react'
+import eventBus from '../../utils/eventBus'
 
 const StatisticsChart = () => {
     const [subjects, setSubjects] = useState([]);
     const [taskCounts, setTaskCounts] = useState([]);
 
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem('userData')) || {};
-        const userSubjects = userData.subjects || ['AAD', 'CD', 'IEFT', 'DC', 'CGIP'];
+        const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
+        const userSubjects = userInfo.subjects?.map(subject => subject.name) || [];
         setSubjects(userSubjects);
-        setTaskCounts([15, 8, 12, 10, 7]); // Sample task counts per subject
+        setTaskCounts(new Array(userSubjects.length).fill(0)); // Initialize with zeros
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = eventBus.subscribe('subjectsUpdated', (updatedSubjects) => {
+            const subjectNames = updatedSubjects.map(subject => subject.name);
+            setSubjects(subjectNames);
+            setTaskCounts(new Array(subjectNames.length).fill(0));
+        });
+        
+        return () => unsubscribe();
     }, []);
 
     const option = {
