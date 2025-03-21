@@ -5,18 +5,53 @@ import "./Board.css"
 import { RxCross2 } from 'react-icons/rx'
 import { IoMdAdd } from 'react-icons/io'
 import AddCardModal from '../../components/AddCardModal/AddCardModal';
-import { useState } from 'react';
-import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md' // Add this import
-import { useEffect } from 'react';  // Add this import
-import { IoMdNotifications } from 'react-icons/io'; // Add this import at the top
+import { useState, useEffect } from 'react';
+import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md'
+import { IoMdNotifications } from 'react-icons/io';
 import eventBus from '../../utils/eventBus';
+import { auth } from '../../firebase';
 
 const BoardPage = () => {
-    const { board, setBoard, initBoard } = useBoard();
+    const { board, setBoard, initBoard, resetBoard } = useBoard();
+    const [isLoading, setIsLoading] = useState(true);
     
     useEffect(() => {
-        initBoard();
-    }, [initBoard]);
+        let mounted = true;
+
+        const loadBoard = async () => {
+            try {
+                setIsLoading(true);
+                await initBoard();
+            } catch (error) {
+                console.error("Error loading board:", error);
+            } finally {
+                if (mounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        // Load board initially
+        loadBoard();
+
+        // Set up auth state listener
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (mounted) {
+                if (user) {
+                    // User is signed in, load their board
+                    await loadBoard();
+                } else {
+                    // User is signed out, reset board
+                    resetBoard();
+                }
+            }
+        });
+
+        return () => {
+            mounted = false;
+            unsubscribe();
+        };
+    }, []);
 
     const [modalOpened, setModalOpened] = useState(false);
     const [title, setTitle] = useState('');
@@ -25,6 +60,11 @@ const BoardPage = () => {
     const [currentColumn, setCurrentColumn] = useState(null);
     const [currentTask, setCurrentTask] = useState(null);
     const [expandedCards, setExpandedCards] = useState({});
+    const [subjects, setSubjects] = useState([]);
+    const [subject, setSubject] = useState('');
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
 
     const toggleCardDetails = (cardId) => {  // Move this here
         setExpandedCards(prev => ({
@@ -33,15 +73,14 @@ const BoardPage = () => {
         }));
     };
 
-    const handleColumnMove = (_card, source, destination) => {
-        const updatedBoard = moveColumn(board, source, destination)
-        setBoard(updatedBoard)
+    const handleColumnMove = async (_card, source, destination) => {
+        const updatedBoard = moveColumn(board, source, destination);
+        await setBoard(updatedBoard);
     }
 
-    const handleCardMove = (_card, source, destination) => {
-        const updatedBoard = moveCard(board, source, destination)
-        setBoard(updatedBoard)
-
+    const handleCardMove = async (_card, source, destination) => {
+        const updatedBoard = moveCard(board, source, destination);
+        await setBoard(updatedBoard);
     }
 
     const getColumn = (card) => {
@@ -80,19 +119,13 @@ const BoardPage = () => {
         }
     }
 
-    // Add these state variables at the top with other useState declarations
-    const [subjects, setSubjects] = useState([]);
-    const [subject, setSubject] = useState('');
-    
-    // Add this useEffect after other useEffect hooks
     useEffect(() => {
         const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
         const userSubjects = userInfo.subjects?.map(subject => subject.name) || [];
         setSubjects(userSubjects);
     }, []);
     
-    // Update the handleCardAdd function to include subject
-    const handleCardAdd = (title, detail, dueDate, column, subject) => {
+    const handleCardAdd = async (title, detail, dueDate, column, subject) => {
         const card = {
             id: new Date().getTime(),
             title,
@@ -101,9 +134,9 @@ const BoardPage = () => {
             subject: subject,
             createdDate: new Date().toISOString().split('T')[0]
         };
-        const updatedBoard = addCard(board, column, card)
-        setBoard(updatedBoard)
-        setModalOpened(false)
+        const updatedBoard = addCard(board, column, card);
+        await setBoard(updatedBoard);
+        setModalOpened(false);
     }
 
     const handleCardEdit = (task) => {
@@ -131,18 +164,26 @@ const BoardPage = () => {
         setCurrentTask(null);
     };
 
-    const updateTask = (id, updatedTask) => {
-        const updatedBoard = board.columns.map(column => ({
+    const updateTask = async (id, updatedTask) => {
+        const updatedColumns = board.columns.map(column => ({
             ...column,
-            cards: column.cards.map(card => (card.id === id ? { ...card, ...updatedTask } : card))
+            cards: column.cards.map(card => 
+                card.id === id 
+                    ? { 
+                        ...card, 
+                        title: updatedTask.title,
+                        description: updatedTask.detail,
+                        dueDate: updatedTask.dueDate,
+                        subject: updatedTask.subject
+                    } 
+                    : card
+            )
         }));
-        setBoard({ columns: updatedBoard });
+        
+        await setBoard({ columns: updatedColumns });
         setModalOpened(false);
     };
 
-    const [showNotifications, setShowNotifications] = useState(false);
-
-    // Replace getTomorrowsTasks with getTodaysTasks
     const getTodaysTasks = () => {
         const today = new Date();
         const todayString = today.toISOString().split('T')[0];
@@ -160,9 +201,6 @@ const BoardPage = () => {
         });
         return dueTasks;
     };
-
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
 
     const handleSearch = (query) => {
         setSearchQuery(query);
@@ -193,6 +231,10 @@ const BoardPage = () => {
         return () => unsubscribe();
     }, []);
 
+    if (isLoading) {
+        return <div className="board-loading">Loading board...</div>;
+    }
+
     return (
         <div className="board-container">
             <div className="board-header">
@@ -221,7 +263,6 @@ const BoardPage = () => {
                             </div>
                         )}
                     </div>
-                    {/* Update the notification section in the return statement */}
                     <div className="notification-container">
                         <button 
                             className="notification-button"
@@ -299,9 +340,8 @@ const BoardPage = () => {
                     const [title, setTitle] = useState('');
                     const [detail, setDetail] = useState('');
                     const [dueDate, setDueDate] = useState('');
-                    const [subject, setSubject] = useState(''); // Add this line
+                    const [subject, setSubject] = useState('');
                 
-                    // Update the handleCardAdd function in renderColumnHeader
                     const handleCardAdd = (title, detail, dueDate, subject) => {
                         const card = {
                             id: new Date().getTime(),
@@ -319,35 +359,6 @@ const BoardPage = () => {
                         setDueDate('');
                         setSubject('');
                     }
-                
-                    // Update the onClick handler in the Add Task button
-                    <button onClick={() => {
-                        if (!title || !detail || !dueDate || !subject) {
-                            alert("Please fill in all fields.");
-                            return;
-                        }
-                        handleCardAdd(title, detail, dueDate, subject);
-                    }}>Add Task</button>
-                
-                    // Update the card details display in renderCard
-                    {expandedCards[props.id] && (
-                        <div className="card-details">
-                            <p>{props.description}</p>
-                            <p>Subject: {props.subject}</p>
-                            <p>Due Date: {props.dueDate}</p>
-                            <p>Created: {props.createdDate}</p>
-                        </div>
-                    )}
-                
-                    // Update handleCardEdit to include subject
-                    const handleCardEdit = (task) => {
-                        setTitle(task.title);
-                        setDetail(task.description);
-                        setDueDate(task.dueDate);
-                        setSubject(task.subject || ''); // Add this line
-                        setCurrentTask(task);
-                        setModalOpened(true);
-                    };
                 
                     return (
                         <div className='column-header'>
@@ -418,7 +429,6 @@ const BoardPage = () => {
 
             {modalOpened && (
                 <div className="modal-overlay">
-                    // In the modal form section
                     <div className="modal">
                         <h2>{currentTask ? "Edit Task" : "Add Task"}</h2>
                         <input 

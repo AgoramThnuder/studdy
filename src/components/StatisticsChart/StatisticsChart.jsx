@@ -2,27 +2,30 @@ import ReactECharts from 'echarts-for-react'
 import * as echarts from 'echarts'
 import { useEffect, useState } from 'react'
 import eventBus from '../../utils/eventBus'
+import useBoard from '../../store/Board'
 
 const StatisticsChart = () => {
-    const [subjects, setSubjects] = useState([]);
+    const { board } = useBoard();
     const [taskCounts, setTaskCounts] = useState([]);
+    const [sections, setSections] = useState([]);
+
+    // Function to count tasks for each section
+    const calculateTaskCounts = (board) => {
+        return board.columns.map(column => ({
+            name: column.title,
+            count: column.cards.length
+        }));
+    };
 
     useEffect(() => {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
-        const userSubjects = userInfo.subjects?.map(subject => subject.name) || [];
-        setSubjects(userSubjects);
-        setTaskCounts(new Array(userSubjects.length).fill(0)); // Initialize with zeros
-    }, []);
-
-    useEffect(() => {
-        const unsubscribe = eventBus.subscribe('subjectsUpdated', (updatedSubjects) => {
-            const subjectNames = updatedSubjects.map(subject => subject.name);
-            setSubjects(subjectNames);
-            setTaskCounts(new Array(subjectNames.length).fill(0));
-        });
-        
-        return () => unsubscribe();
-    }, []);
+        if (board && board.columns) {
+            const sectionNames = board.columns.map(column => column.title);
+            setSections(sectionNames);
+            
+            const counts = calculateTaskCounts(board);
+            setTaskCounts(counts.map(item => item.count));
+        }
+    }, [board]);
 
     const option = {
         color: ['var(--orange)'],
@@ -38,9 +41,12 @@ const StatisticsChart = () => {
             },
             backgroundColor: "rgba(0, 0, 0, 0.59)",
             borderWidth: 0,
+            formatter: function(params) {
+                return `${params[0].name}: ${params[0].value} tasks`;
+            }
         },
         grid: {
-            left: "3%",
+            left: "5%",
             right: "4%",
             bottom: "3%",
             containLabel: true,
@@ -50,9 +56,10 @@ const StatisticsChart = () => {
             {
                 type: "category",
                 boundaryGap: false,
-                data: subjects,
+                data: sections,
                 axisLabel: {
-                    color: 'white'
+                    color: 'white',
+                    fontSize: 12
                 }
             }
         ],
@@ -60,11 +67,29 @@ const StatisticsChart = () => {
             {
                 type: "value",
                 name: 'Number of Tasks',
-                splitLine: {
-                    show: false,
+                min: 0,
+                max: function(value) {
+                    return Math.max(6, Math.ceil(value.max));
                 },
+                interval: 1,
                 axisLabel: {
-                    color: 'white'
+                    color: 'white',
+                    fontSize: 12,
+                    formatter: function(value) {
+                        return Math.floor(value);
+                    }
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        type: 'dashed'
+                    }
+                },
+                nameTextStyle: {
+                    color: 'white',
+                    fontSize: 14,
+                    padding: [0, 0, 0, 40]
                 }
             }
         ],
