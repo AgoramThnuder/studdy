@@ -10,6 +10,8 @@ import { MdKeyboardArrowDown, MdKeyboardArrowUp } from 'react-icons/md'
 import { IoMdNotifications } from 'react-icons/io';
 import eventBus from '../../utils/eventBus';
 import { auth } from '../../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 const BoardPage = () => {
     const { board, setBoard, initBoard, resetBoard } = useBoard();
@@ -22,6 +24,29 @@ const BoardPage = () => {
             try {
                 setIsLoading(true);
                 await initBoard();
+                
+                // Only update if component is still mounted
+                if (mounted) {
+                    const user = auth.currentUser;
+                    if (user) {
+                        // Try to load from Firebase
+                        const userBoardRef = doc(db, 'boards', user.uid);
+                        const userBoardDoc = await getDoc(userBoardRef);
+                        
+                        if (userBoardDoc.exists() && userBoardDoc.data().boardData) {
+                            const loadedBoard = userBoardDoc.data().boardData;
+                            // Update any "Doing" columns to "In Progress"
+                            const updatedBoard = {
+                                ...loadedBoard,
+                                columns: loadedBoard.columns.map(column => ({
+                                    ...column,
+                                    title: column.title === "Doing" ? "In Progress" : column.title
+                                }))
+                            };
+                            await setBoard(updatedBoard);
+                        }
+                    }
+                }
             } catch (error) {
                 console.error("Error loading board:", error);
             } finally {
@@ -43,6 +68,7 @@ const BoardPage = () => {
                 } else {
                     // User is signed out, reset board
                     resetBoard();
+                    setIsLoading(false);
                 }
             }
         });
@@ -96,7 +122,7 @@ const BoardPage = () => {
                 background:
                     "linear-gradient(65.35deg, rgba(65, 65, 65, 0.67) -1.72%, rgba(48, 189, 220) 163.54%)",
             };
-        } else if (title === "Doing") {
+        } else if (title === "In Progress") {
             return {
                 background:
                     "linear-gradient(65.35deg, rgba(65, 65, 65, 0.67) -1.72%, rgba(220, 48, 48) 163.54%)",
@@ -120,9 +146,25 @@ const BoardPage = () => {
     }
 
     useEffect(() => {
-        const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
-        const userSubjects = userInfo.subjects?.map(subject => subject.name) || [];
-        setSubjects(userSubjects);
+        const fetchUserSubjects = async () => {
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const userSubjects = userData.subjects?.map(subject => subject.name) || [];
+                    setSubjects(userSubjects);
+                }
+            } catch (error) {
+                console.error("Error fetching subjects:", error);
+            }
+        };
+
+        fetchUserSubjects();
     }, []);
     
     const handleCardAdd = async (title, detail, dueDate, column, subject) => {
@@ -134,7 +176,22 @@ const BoardPage = () => {
             subject: subject,
             createdDate: new Date().toISOString().split('T')[0]
         };
-        const updatedBoard = addCard(board, column, card);
+
+        // Create a new board state with the added card
+        const updatedBoard = {
+            ...board,
+            columns: board.columns.map(col => {
+                if (col.title === column.title) {
+                    return {
+                        ...col,
+                        cards: [...col.cards, card]
+                    };
+                }
+                return col;
+            })
+        };
+
+        // Save the updated board
         await setBoard(updatedBoard);
         setModalOpened(false);
     }
@@ -404,11 +461,11 @@ const BoardPage = () => {
                                         />
                                         <p>Created Date: {new Date().toISOString().split('T')[0]}</p>
                                         <button onClick={() => {
-                                            if (!title || !detail || !dueDate) {
+                                            if (!title || !detail || !dueDate || !subject) {
                                                 alert("Please fill in all fields.");
                                                 return;
                                             }
-                                            handleCardAdd(title, detail, dueDate);
+                                            handleCardAdd(title, detail, dueDate, subject);
                                         }}>Add Task</button>
                                         <button onClick={() => {
                                             setModalOpened(false);

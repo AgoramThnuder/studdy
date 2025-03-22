@@ -16,7 +16,7 @@ const Dashboard = () => {
   const [allNotifications, setAllNotifications] = useState([]);
   const [taskCounts, setTaskCounts] = useState({
     TODO: 0,
-    Doing: 0,
+    Progress: 0,
     Completed: 0,
     Rewise: 0
   });
@@ -40,56 +40,72 @@ const Dashboard = () => {
   }, [showNotifications]);
 
   useEffect(() => {
-    const fetchAllNotifications = async () => {
+    const fetchNotifications = async () => {
       try {
         const user = auth.currentUser;
         if (!user) return;
 
-        // Get today's date in YYYY-MM-DD format
-        const today = new Date();
-        const todayString = today.toISOString().split('T')[0];
+        // Task notifications
+        const taskNotifications = [];
+        if (board && board.columns) {
+          board.columns.forEach(column => {
+            column.cards.forEach(card => {
+              if (card.dueDate) {
+                const dueDate = new Date(card.dueDate);
+                const today = new Date();
+                const diffTime = dueDate.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        // Fetch tasks from board
-        const taskNotifications = board.columns.flatMap(column => 
-          column.cards
-            .filter(card => card.dueDate === todayString)
-            .map(card => ({
-              type: 'task',
-              title: card.title,
-              description: `Due today in ${column.title}`,
-              time: card.dueDate,
-              column: column.title
-            }))
+                if (diffDays <= 1 && diffDays >= 0) {
+                  taskNotifications.push({
+                    id: card.id,
+                    title: `Task Due: ${card.title}`,
+                    description: card.description,
+                    time: diffDays === 0 ? 'Today' : 'Tomorrow',
+                    type: 'task',
+                    subject: card.subject
+                  });
+                }
+              }
+            });
+          });
+        }
+
+        // Calendar event notifications
+        const eventsRef = collection(db, 'users', user.uid, 'events');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const eventsQuery = query(
+          eventsRef,
+          where('start', '>=', today.toISOString()),
+          where('start', '<=', tomorrow.toISOString())
         );
 
-        // Fetch calendar events from events collection
-        const eventsRef = collection(db, 'users', user.uid, 'events');
-        const eventsQuery = query(eventsRef, where('date', '==', todayString));
         const eventsSnapshot = await getDocs(eventsQuery);
-        
-        const calendarNotifications = [];
-        eventsSnapshot.forEach(doc => {
+        const eventNotifications = eventsSnapshot.docs.map(doc => {
           const event = doc.data();
-          calendarNotifications.push({
-            type: 'calendar',
-            title: event.title,
+          const eventDate = new Date(event.start);
+          const isToday = eventDate.toDateString() === today.toDateString();
+          
+          return {
+            id: doc.id,
+            title: `Event: ${event.title}`,
             description: event.description || 'No description',
-            time: event.date,
-            startTime: event.startTime,
-            endTime: event.endTime
-          });
+            time: isToday ? 'Today' : 'Tomorrow',
+            type: 'calendar',
+            startTime: eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
         });
 
         // Combine and sort notifications
-        const combinedNotifications = [
-          ...taskNotifications,
-          ...calendarNotifications
-        ].sort((a, b) => {
-          if (a.startTime && b.startTime) {
-            return a.startTime.localeCompare(b.startTime);
-          }
-          return 0;
-        });
+        const combinedNotifications = [...taskNotifications, ...eventNotifications]
+          .sort((a, b) => {
+            if (a.type !== b.type) return a.type === 'task' ? -1 : 1;
+            return a.time === 'Today' ? -1 : 1;
+          });
 
         setAllNotifications(combinedNotifications);
       } catch (error) {
@@ -97,7 +113,7 @@ const Dashboard = () => {
       }
     };
 
-    fetchAllNotifications();
+    fetchNotifications();
   }, [board]);
 
   // Calculate task counts whenever board changes
@@ -174,34 +190,31 @@ const Dashboard = () => {
           </div>
           {allNotifications.length === 0 ? (
             <div className={css.noNotifications}>
-              No notifications for today
+              No notifications
             </div>
           ) : (
-            allNotifications.map((notification, index) => (
-              <div key={index} className={css.notificationItem}>
+            allNotifications.map((notification) => (
+              <div key={notification.id} className={css.notificationItem}>
+                <div className={css.notificationIcon}>
+                  {getNotificationIcon(notification.type)}
+                </div>
                 <div className={css.notificationContent}>
-                  <span className={css.notificationIcon}>
-                    {getNotificationIcon(notification.type)}
-                  </span>
-                  <div className={css.notificationDetails}>
-                    <span className={css.notificationTitle}>
-                      {notification.title}
-                    </span>
-                    <span className={css.notificationDescription}>
-                      {notification.description}
-                    </span>
-                    {notification.startTime && (
-                      <span className={css.notificationTime}>
-                        {notification.startTime} - {notification.endTime}
+                  <div className={css.notificationTitle}>
+                    {notification.title}
+                    {notification.type === 'task' && notification.subject && (
+                      <span className={css.columnTag}>
+                        {notification.subject}
                       </span>
                     )}
                   </div>
+                  <div className={css.notificationDescription}>
+                    {notification.description}
+                  </div>
+                  <div className={css.notificationTime}>
+                    {notification.time}
+                    {notification.type === 'calendar' && ` at ${notification.startTime}`}
+                  </div>
                 </div>
-                {notification.type === 'task' && (
-                  <span className={css.columnTag}>
-                    {notification.column}
-                  </span>
-                )}
               </div>
             ))
           )}
@@ -237,11 +250,11 @@ const Dashboard = () => {
 
           <div className={css.card}>
             <div className={css.cardHead}>
-              <span>Progress</span>
+              <span>In Progress</span>
             </div>
             <div className={css.cardAmount}>
               <span>*</span>
-              <span>{taskCounts.Doing || 0}</span>
+              <span>{taskCounts['In Progress'] || 0}</span>
             </div>
           </div>
 
@@ -299,7 +312,6 @@ const Dashboard = () => {
         </div>
 
         <div className={css.splitByTasks}>
-          <h3>Split by tasks</h3>
           <div className={css.taskChart}>
             {/* Your existing chart component */}
           </div>

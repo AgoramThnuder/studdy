@@ -69,7 +69,7 @@ export const boardData = {
         },
         {
             id: 2,
-            title: "Doing",
+            title: "In Progress",
             cards: []
         },
         {

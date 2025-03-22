@@ -1,109 +1,112 @@
 import {create} from 'zustand'
-import {boardData} from '../data'
 import { db } from '../firebase'
 import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore'
 import { auth } from '../firebase'
 
+const initialState = {
+    columns: [
+        { id: 1, title: 'TODO', cards: [] },
+        { id: 2, title: 'In Progress', cards: [] },
+        { id: 3, title: 'Completed', cards: [] },
+        { id: 4, title: 'Rewise', cards: [] }
+    ]
+};
+
 const useBoard = create((set, get)=> ({
-    board: boardData,
+    board: initialState,
     isInitialized: false,
 
     setBoard: async (newBoard) => {
         try {
             const user = auth.currentUser;
             if (!user) {
-                // Save to localStorage only if no user
-                localStorage.setItem('boardState', JSON.stringify(newBoard));
+                console.log("No user logged in, not saving to Firebase");
                 set({ board: newBoard });
                 return;
             }
 
-            // Save to Firebase under user's document
-            const userBoardRef = doc(db, 'users', user.uid);
-            await setDoc(userBoardRef, {
-                boardData: newBoard,
-                lastUpdated: new Date().toISOString()
-            }, { merge: true });
-
-            // Update state and localStorage
+            // First update the local state to make UI responsive
             set({ board: newBoard });
-            localStorage.setItem('boardState', JSON.stringify(newBoard));
+
+            // Save to Firebase in the boards collection
+            const boardRef = doc(db, 'boards', user.uid);
+            await setDoc(boardRef, {
+                boardData: newBoard,
+                lastUpdated: new Date().toISOString(),
+                userEmail: user.email
+            });
+
         } catch (error) {
             console.error("Error saving board:", error);
-            // Save to localStorage as fallback
-            localStorage.setItem('boardState', JSON.stringify(newBoard));
             set({ board: newBoard });
         }
     },
     
-    // Initialize board from Firebase or localStorage
     initBoard: async () => {
-        // Prevent multiple initializations
-        if (get().isInitialized) return;
-
         try {
             const user = auth.currentUser;
-            
             if (!user) {
-                // If no user, try to load from localStorage
-                const localBoard = localStorage.getItem('boardState');
-                if (localBoard) {
-                    const parsedBoard = JSON.parse(localBoard);
-                    set({ board: parsedBoard, isInitialized: true });
-                } else {
-                    set({ board: boardData, isInitialized: true });
-                }
+                console.log("No user logged in, using initial state");
+                set({ board: initialState, isInitialized: true });
                 return;
             }
 
-            // Try to load from Firebase first
-            const userBoardRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userBoardRef);
+            // Load from Firebase boards collection
+            const boardRef = doc(db, 'boards', user.uid);
+            const boardDoc = await getDoc(boardRef);
             
-            if (userDoc.exists() && userDoc.data().boardData) {
-                const loadedBoard = userDoc.data().boardData;
-                set({ board: loadedBoard, isInitialized: true });
-                // Update localStorage
-                localStorage.setItem('boardState', JSON.stringify(loadedBoard));
-            } else {
-                // If no data in Firebase, check localStorage
-                const localBoard = localStorage.getItem('boardState');
-                if (localBoard) {
-                    const parsedBoard = JSON.parse(localBoard);
-                    set({ board: parsedBoard, isInitialized: true });
-                    // Save localStorage data to Firebase
-                    await setDoc(userBoardRef, {
-                        boardData: parsedBoard,
-                        lastUpdated: new Date().toISOString()
-                    }, { merge: true });
+            if (boardDoc.exists()) {
+                const data = boardDoc.data();
+                if (data.boardData && data.boardData.columns) {
+                    // Update any "Doing" columns to "In Progress"
+                    const updatedBoard = {
+                        ...data.boardData,
+                        columns: data.boardData.columns.map(column => ({
+                            ...column,
+                            title: column.title === "Doing" ? "In Progress" : column.title
+                        }))
+                    };
+                    set({ board: updatedBoard, isInitialized: true });
                 } else {
-                    // If no data anywhere, initialize with default board
-                    await setDoc(userBoardRef, {
-                        boardData: boardData,
-                        lastUpdated: new Date().toISOString()
-                    }, { merge: true });
-                    set({ board: boardData, isInitialized: true });
-                    localStorage.setItem('boardState', JSON.stringify(boardData));
+                    // Invalid board data, initialize with default
+                    await setDoc(boardRef, {
+                        boardData: initialState,
+                        lastUpdated: new Date().toISOString(),
+                        userEmail: user.email
+                    });
+                    set({ board: initialState, isInitialized: true });
                 }
+            } else {
+                // No board exists for user, create new one
+                await setDoc(boardRef, {
+                    boardData: initialState,
+                    lastUpdated: new Date().toISOString(),
+                    userEmail: user.email
+                });
+                set({ board: initialState, isInitialized: true });
             }
         } catch (error) {
-            console.error("Error loading board:", error);
-            // If Firebase fails, try to load from localStorage
-            const localBoard = localStorage.getItem('boardState');
-            if (localBoard) {
-                set({ board: JSON.parse(localBoard), isInitialized: true });
-            } else {
-                // If all else fails, use default board
-                set({ board: boardData, isInitialized: true });
-                localStorage.setItem('boardState', JSON.stringify(boardData));
-            }
+            console.error("Error initializing board:", error);
+            set({ board: initialState, isInitialized: true });
         }
     },
 
-    // Reset board state when needed
-    resetBoard: () => {
-        set({ board: boardData, isInitialized: false });
-        localStorage.removeItem('boardState');
+    resetBoard: async () => {
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                // Clear the user's board in Firebase
+                const boardRef = doc(db, 'boards', user.uid);
+                await setDoc(boardRef, {
+                    boardData: initialState,
+                    lastUpdated: new Date().toISOString(),
+                    userEmail: user.email
+                });
+            }
+        } catch (error) {
+            console.error("Error resetting board:", error);
+        }
+        set({ board: initialState, isInitialized: false });
     }
 }));
 

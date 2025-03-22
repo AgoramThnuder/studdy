@@ -7,7 +7,12 @@ import useBoard from '../../store/Board'
 const StatisticsChart = () => {
     const { board } = useBoard();
     const [taskCounts, setTaskCounts] = useState([]);
-    const [sections, setSections] = useState([]);
+    const [sections] = useState([
+        { title: 'TODO', color: '#30BDDC' },
+        { title: 'In Progress', color: '#DC3030' },
+        { title: 'Completed', color: '#30DC56' },
+        { title: 'Rewise', color: '#FFC107' }
+    ]);
 
     // Function to count tasks for each section
     const calculateTaskCounts = (board) => {
@@ -20,10 +25,7 @@ const StatisticsChart = () => {
     useEffect(() => {
         if (board && board.columns) {
             const sectionNames = board.columns.map(column => column.title);
-            setSections(sectionNames);
-            
-            const counts = calculateTaskCounts(board);
-            setTaskCounts(counts.map(item => item.count));
+            setTaskCounts(calculateTaskCounts(board).map(item => item.count));
         }
     }, [board]);
 
@@ -56,7 +58,7 @@ const StatisticsChart = () => {
             {
                 type: "category",
                 boundaryGap: false,
-                data: sections,
+                data: sections.map(section => section.title),
                 axisLabel: {
                     color: 'white',
                     fontSize: 12
