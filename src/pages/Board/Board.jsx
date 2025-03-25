@@ -132,17 +132,17 @@ const BoardPage = () => {
                 background:
                     "linear-gradient(65.35deg, rgba(65, 65, 65, 0.67) -1.72%, rgba(48, 220, 86) 163.54%)",
             };
-        } else if (title === "Backlog") {
-            return {
-                background:
-                    "linear-gradient(65.35deg, rgba(65, 65,65, 0.67) -1.72%,rgba(134, 48, 220) 163.54%)",
-            };
-        } else if (title === "Rewise") {
+        } else if (title === "Revision") {
             return {
                 background:
                     "linear-gradient(65.35deg, rgba(65, 65, 65, 0.67) -1.72%, rgba(255, 193, 7) 163.54%)",
             };
         }
+        // Default gradient if no match
+        return {
+            background:
+                "linear-gradient(65.35deg, rgba(65, 65, 65, 0.67) -1.72%, rgba(134, 48, 220) 163.54%)",
+        };
     }
 
     useEffect(() => {

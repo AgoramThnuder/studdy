@@ -11,7 +11,7 @@ const StatisticsChart = () => {
         { title: 'TODO', color: '#30BDDC' },
         { title: 'In Progress', color: '#DC3030' },
         { title: 'Completed', color: '#30DC56' },
-        { title: 'Rewise', color: '#FFC107' }
+        { title: 'Revision', color: '#FFC107' }
     ]);
 
     // Function to count tasks for each section

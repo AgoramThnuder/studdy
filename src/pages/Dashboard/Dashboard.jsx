@@ -16,9 +16,9 @@ const Dashboard = () => {
   const [allNotifications, setAllNotifications] = useState([]);
   const [taskCounts, setTaskCounts] = useState({
     TODO: 0,
-    Progress: 0,
+    'In Progress': 0,
     Completed: 0,
-    Rewise: 0
+    Revision: 0
   });
   const [subjectTaskCounts, setSubjectTaskCounts] = useState([]);
   const notificationRef = useRef(null);
@@ -270,11 +270,11 @@ const Dashboard = () => {
 
           <div className={css.card}>
             <div className={css.cardHead}>
-              <span>Rewise</span>
+              <span>Revision</span>
             </div>
             <div className={css.cardAmount}>
               <span>*</span>
-              <span>{taskCounts.Rewise || 0}</span>
+              <span>{taskCounts.Revision || 0}</span>
             </div>
           </div>
         </div>

@@ -8,7 +8,7 @@ const initialState = {
         { id: 1, title: 'TODO', cards: [] },
         { id: 2, title: 'In Progress', cards: [] },
         { id: 3, title: 'Completed', cards: [] },
-        { id: 4, title: 'Rewise', cards: [] }
+        { id: 4, title: 'Revision', cards: [] }
     ]
 };
 
